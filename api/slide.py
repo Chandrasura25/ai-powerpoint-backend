@@ -6,6 +6,7 @@ from pptx import Presentation
 import re
 import os
 from Config.config import Config
+from pptx.util import Pt
 
 router = APIRouter()
 
@@ -27,7 +28,7 @@ async def generate_presentation(request: PresentationRequest):
         ppt = Presentation()
 
         for content in slide_content:
-            # Select the appropriate slide layout
+            # Choose layout based on request
             if request.layout == "Varied":
                 slide = ppt.slides.add_slide(ppt.slide_layouts[8])  # Image & Text
             elif request.layout == "Text-Heavy":
@@ -35,20 +36,24 @@ async def generate_presentation(request: PresentationRequest):
             else:  # Image-Focused
                 slide = ppt.slides.add_slide(ppt.slide_layouts[5])  # Title & Image
 
-            # Add title
+            # Add title (ensure it appears at the top and is bigger)
             if slide.shapes.title:
                 slide.shapes.title.text = content["title"]
+                slide.shapes.title.text_frame.paragraphs[0].font.size = Pt(32) 
+            # Add bullet points only if there's a content placeholder
+            if request.layout in ["Varied", "Text-Heavy"]:
+                try:
+                    text_placeholder = slide.placeholders[1].text_frame  # Content placeholder
+                    text_placeholder.clear()
+                    
+                    for point in content["bullet_points"]:
+                        p = text_placeholder.add_paragraph()
+                        p.text = point
+                        p.space_after = 10  # Adds spacing between bullets
+                except IndexError:
+                    pass  # Skip if content placeholder does not exist
 
-            # Handle bullet points for "Varied" and "Text-Heavy"
-            if request.layout in ["Varied", "Text-Heavy"] and len(slide.placeholders) > 1:
-                text_placeholder = slide.placeholders[1].text_frame
-                text_placeholder.clear()
-
-                for point in content["bullet_points"]:
-                    p = text_placeholder.add_paragraph()
-                    p.text = point
-
-            # Handle Image for "Varied" and "Image-Focused"
+            # Add image if applicable
             if request.layout in ["Varied", "Image-Focused"]:
                 add_image_to_slide(slide)
 
@@ -59,7 +64,6 @@ async def generate_presentation(request: PresentationRequest):
         return FileResponse(file_path, filename=f"{request.topic}.pptx")
 
     except Exception as e:
-        print(e)
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -69,10 +73,8 @@ def generate_slide_content(topic: str, num_slides: int):
         prompt = f"Generate an outline for a PowerPoint presentation on '{topic}' with {num_slides} slides. Each slide should have a title and 3-5 bullet points."
         response = openai.chat.completions.create(
             model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": "You are a helpful assistant."},
-                {"role": "user", "content": prompt}
-            ],
+            messages=[{"role": "system", "content": "You are a helpful assistant."},
+                      {"role": "user", "content": prompt}],
             max_tokens=500,
         )
 
@@ -82,7 +84,7 @@ def generate_slide_content(topic: str, num_slides: int):
         slide_texts = raw_text.split("\n\n")  # Split by double newlines
 
         for slide_text in slide_texts:
-            lines = slide_text.split("\n")
+            lines = slide_text.strip().split("\n")
             if not lines:
                 continue
 
@@ -94,18 +96,17 @@ def generate_slide_content(topic: str, num_slides: int):
         return slides
 
     except Exception as e:
-        print(e)
         raise HTTPException(status_code=500, detail=str(e))
 
 
 def add_image_to_slide(slide):
-    """Add a sample image to the slide."""
+    """Add an image to the slide in the correct position."""
     try:
-        # get the placeholder image from the same folder
+        # Placeholder image path (replace with dynamic images if needed)
         image_path = os.path.join(os.path.dirname(__file__), "placeholder.png")
 
-        # Add image to the slide
-        left, top, width, height = 200, 150, 400, 300
+        # Define position (adjust as needed to fit layout)
+        left, top, width, height = 400, 150, 300, 250  # Adjusted for better placement
         slide.shapes.add_picture(image_path, left, top, width, height)
 
     except Exception:
