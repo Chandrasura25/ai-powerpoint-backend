@@ -1,10 +1,6 @@
-
-## **Backend README.md**
-
-```markdown
 # AI-Powered PowerPoint Generator - Backend
 
-This is the backend for the AI-Powered PowerPoint Generator. It is built using Python, FastAPI, and the `python-pptx` library. The backend accepts user input, generates a PowerPoint presentation using OpenAI, and returns the `.pptx` file for download.
+Welcome to the backend of the AI-Powered PowerPoint Generator. This project leverages Python, FastAPI, and the `python-pptx` library to create dynamic PowerPoint presentations based on user input. The backend processes requests, generates presentations using OpenAI, and provides the `.pptx` file for download.
 
 ## Prerequisites
 
@@ -39,12 +35,13 @@ This is the backend for the AI-Powered PowerPoint Generator. It is built using P
 
 ## Running the Backend
 
-1. Start the FastAPI server:
+1. **Start the FastAPI server**:
    ```bash
    uvicorn main:app --reload
    ```
 
-2. The backend will be available at `http://localhost:8000`.
+2. **Access the backend**:
+   The backend will be available at `http://localhost:8000`.
 
 ## API Endpoints
 
@@ -60,24 +57,3 @@ This is the backend for the AI-Powered PowerPoint Generator. It is built using P
   - Returns a `.pptx` file for download.
 
 ## Example Request
-
-```bash
-curl -X POST "http://localhost:8000/api/slide/generate-presentation" \
--H "Content-Type: application/json" \
--d '{"topic": "Future of AI", "num_slides": 5, "layout": "Varied"}'
-```
-
-## Dependencies
-
-- `fastapi`
-- `python-pptx`
-- `openai`
-- `uvicorn`
-- `python-dotenv`
-
----
-
-## License
-
-This project is licensed under the MIT License.
-```
