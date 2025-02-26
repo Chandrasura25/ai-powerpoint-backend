@@ -57,3 +57,11 @@ Welcome to the backend of the AI-Powered PowerPoint Generator. This project leve
   - Returns a `.pptx` file for download.
 
 ## Example Request
+```bash
+curl -X POST "http://localhost:8000/api/slide/generate-presentation" \
+-H "Content-Type: application/json" \
+-d '{"topic": "Future of AI", "num_slides": 5, "layout": "Varied"}'
+```
+
+
+To generate a presentation, you can use the following `curl` command:
